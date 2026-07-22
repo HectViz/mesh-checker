@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  role      String   @default("USER")
+  createdAt DateTime @default(now())
+  meshes    Mesh[]
+}
+
+model Mesh {
+  id           Int      @id @default(autoincrement())
+  filename     String
+  originalName String
+  fileSize     Int
+  uploadDate   DateTime @default(now())
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
