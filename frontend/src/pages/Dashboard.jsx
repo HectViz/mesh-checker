@@ -69,7 +69,7 @@ const Dashboard = () => {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Error al subir');
+        throw new Error(data.error || 'Error al subir el modelo');
       }
 
       fetchMeshes();
@@ -116,16 +116,16 @@ const Dashboard = () => {
         <div className="flex justify-between items-center mb-8 bg-base-100 p-4 rounded-box shadow-sm">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <FileBox className="text-primary" /> Mis modelos
+              <FileBox className="text-primary" /> Mis Modelos
             </h1>
-            <p className="text-sm opacity-70">Aquí puedes revisar tus modelos subidos anteriormente.</p>
+            <p className="text-sm opacity-70">Hola, {user?.username}</p>
           </div>
           <div className="flex gap-4 items-center">
             {user?.role === 'ADMIN' && (
-              <Link to="/admin" className="btn btn-outline btn-sm">panel admin</Link>
+              <Link to="/admin" className="btn btn-outline btn-sm">Panel Admin</Link>
             )}
             <button onClick={() => { logout(); navigate('/login'); }} className="btn btn-ghost btn-sm text-error">
-              <LogOut size={16} /> salir
+              <LogOut size={16} /> Salir
             </button>
           </div>
         </div>
@@ -138,8 +138,8 @@ const Dashboard = () => {
             <div className="card bg-base-100 shadow-xl border-2 border-dashed border-base-300 hover:border-primary transition-colors">
               <div className="card-body items-center text-center py-12">
                 <UploadCloud size={48} className="text-primary mb-4" />
-                <h2 className="card-title">subir nuevo modelo</h2>
-                <p className="text-sm opacity-70 mb-4">arrastra un .glb o haz clic aquí (máx. 50MB)</p>
+                <h2 className="card-title">Subir nuevo modelo</h2>
+                <p className="text-sm opacity-70 mb-4">Arrastra un .glb o haz clic aquí (Máx. 50MB)</p>
                 <input 
                   type="file" 
                   ref={fileInputRef}
@@ -149,7 +149,7 @@ const Dashboard = () => {
                   id="mesh-upload"
                 />
                 <label htmlFor="mesh-upload" className={`btn btn-primary ${uploading ? 'loading' : ''}`}>
-                  {uploading ? 'subiendo...' : 'seleccionar archivo'}
+                  {uploading ? 'Subiendo...' : 'Seleccionar Archivo'}
                 </label>
               </div>
             </div>
@@ -180,7 +180,7 @@ const Dashboard = () => {
           <div className="md:col-span-2">
             <div className="card bg-base-100 shadow-xl">
               <div className="card-body">
-                <h2 className="card-title mb-4">Modelos recientes</h2>
+                <h2 className="card-title mb-4">Modelos Recientes</h2>
 
                 {loading ? (
                   <div className="text-center py-8">Cargando...</div>
