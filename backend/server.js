@@ -12,8 +12,8 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', require('./src/routes/auth'));
-// app.use('/api/mesh', require('./src/routes/mesh'));
-// app.use('/api/admin', require('./src/routes/admin'));
+app.use('/api/mesh', require('./src/routes/mesh'));
+app.use('/api/admin', require('./src/routes/admin'));
 
 // Static folder for uploaded meshes
 app.use('/uploads', express.static('uploads'));
