@@ -6,8 +6,8 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
+import Viewer from './pages/Viewer';
 
-const Viewer = () => <div className="p-8"><h1>visor 3d</h1></div>;
 const Admin = () => <div className="p-8"><h1>panel de administración</h1></div>;
 const NotFound = () => <div className="p-8"><h1>página no encontrada</h1></div>;
 
