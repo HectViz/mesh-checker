@@ -3,15 +3,18 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Center, Environment, ContactShadows } from '@react-three/drei';
 import { MeshModel } from '../components/MeshScene';
-import { 
-  ArrowLeft, 
-  Layers, 
-  Sun, 
-  Box as BoxIcon, 
-  Maximize2, 
-  Disc, 
-  Eye, 
-  Info 
+import {
+  ArrowLeft,
+  Layers,
+  Sun,
+  Box as BoxIcon,
+  Maximize2,
+  Disc,
+  Eye,
+  Info,
+  MousePointerClick,
+  Mouse,
+  Move
 } from 'lucide-react';
 
 const Viewer = () => {
@@ -23,7 +26,6 @@ const Viewer = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Viewer State Controls
   const [wireframe, setWireframe] = useState(false);
   const [lightIntensity, setLightIntensity] = useState(1.5);
   const [showMaterials, setShowMaterials] = useState(false);
@@ -43,7 +45,7 @@ const Viewer = () => {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
-        
+
         if (res.ok) {
           const found = data.meshes.find(m => m.id === parseInt(meshId));
           if (found) {
@@ -96,13 +98,12 @@ const Viewer = () => {
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-gradient-to-b from-base-300 to-base-100 select-none">
-      
-      {/* Top Navbar HUD */}
+
       <div className="absolute top-4 left-4 right-4 z-10 flex justify-between items-center pointer-events-none">
         <div className="flex items-center gap-3 pointer-events-auto">
-          <button 
-            onClick={() => navigate('/dashboard')} 
-            className="btn btn-circle btn-neutral shadow-md" 
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="btn btn-circle btn-neutral shadow-md"
             title="Volver al panel"
           >
             <ArrowLeft size={20} />
@@ -117,9 +118,8 @@ const Viewer = () => {
           </div>
         </div>
 
-        {/* Floating Quick Action Bar */}
         <div className="flex gap-2 pointer-events-auto bg-base-100/90 backdrop-blur-md p-1.5 rounded-2xl shadow-md border border-base-content/10">
-          <button 
+          <button
             onClick={() => setWireframe(!wireframe)}
             className={`btn btn-sm ${wireframe ? 'btn-primary' : 'btn-ghost'}`}
             title="Conmutar Wireframe"
@@ -128,7 +128,7 @@ const Viewer = () => {
             <span className="hidden md:inline">Wireframe</span>
           </button>
 
-          <button 
+          <button
             onClick={() => setShowMaterials(!showMaterials)}
             className={`btn btn-sm ${showMaterials ? 'btn-primary' : 'btn-ghost'}`}
             title="Lista de Materiales"
@@ -139,7 +139,6 @@ const Viewer = () => {
         </div>
       </div>
 
-      {/* Sidebar Analysis Overlay (Left Bottom) */}
       <div className="absolute bottom-4 left-4 z-10 max-w-xs w-full bg-base-100/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-base-content/10 text-xs flex flex-col gap-3">
         <div className="flex items-center justify-between font-bold text-sm border-b border-base-content/10 pb-2">
           <span className="flex items-center gap-1.5"><Info size={16} className="text-primary" /> Estadísticas del Mesh</span>
@@ -168,25 +167,23 @@ const Viewer = () => {
           <div className="py-2 text-center text-base-content/50">Calculando geometría...</div>
         )}
 
-        {/* Lighting Control Slider */}
         <div className="mt-1 pt-2 border-t border-base-content/10 flex flex-col gap-1">
           <div className="flex justify-between items-center text-base-content/70">
             <span className="flex items-center gap-1"><Sun size={14} /> Iluminación</span>
             <span className="font-mono">{lightIntensity.toFixed(1)}x</span>
           </div>
-          <input 
-            type="range" 
-            min="0.2" 
-            max="4.0" 
-            step="0.1" 
-            value={lightIntensity} 
+          <input
+            type="range"
+            min="0.2"
+            max="4.0"
+            step="0.1"
+            value={lightIntensity}
             onChange={(e) => setLightIntensity(parseFloat(e.target.value))}
-            className="range range-xs range-primary" 
+            className="range range-xs range-primary"
           />
         </div>
       </div>
 
-      {/* Materials Overlay (Right Side) */}
       {showMaterials && (
         <div className="absolute bottom-4 right-4 z-10 max-w-xs w-full bg-base-100/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-base-content/10 text-xs">
           <div className="flex justify-between items-center font-bold text-sm border-b border-base-content/10 pb-2 mb-3">
@@ -212,7 +209,22 @@ const Viewer = () => {
         </div>
       )}
 
-      {/* Three.js R3F Canvas */}
+      <div className={`absolute bottom-4 right-4 z-10 bg-base-100/90 backdrop-blur-md p-3 rounded-2xl shadow-xl border border-base-content/10 text-xs flex flex-col gap-2 ${showMaterials ? 'mb-[220px]' : ''}`}>
+        <div className="font-bold text-sm border-b border-base-content/10 pb-1 mb-1 text-center">Controles</div>
+        <div className="flex items-center gap-2 text-base-content/70">
+          <MousePointerClick size={14} />
+          <span>Click para rotar</span>
+        </div>
+        <div className="flex items-center gap-2 text-base-content/70">
+          <Mouse size={14} />
+          <span>Scroll para zoom</span>
+        </div>
+        <div className="flex items-center gap-2 text-base-content/70">
+          <Move size={14} />
+          <span>Shift + Click para pan</span>
+        </div>
+      </div>
+
       <Canvas camera={{ position: [0, 2, 5], fov: 45 }}>
         <ambientLight intensity={lightIntensity * 0.5} />
         <directionalLight position={[10, 10, 5]} intensity={lightIntensity} castShadow />
@@ -220,10 +232,10 @@ const Viewer = () => {
 
         <Suspense fallback={null}>
           <Center top>
-            <MeshModel 
-              url={modelUrl} 
-              wireframe={wireframe} 
-              onAnalysisComplete={setAnalysisStats} 
+            <MeshModel
+              url={modelUrl}
+              wireframe={wireframe}
+              onAnalysisComplete={setAnalysisStats}
             />
           </Center>
           <ContactShadows position={[0, -0.01, 0]} opacity={0.6} scale={10} blur={1.5} far={10} />

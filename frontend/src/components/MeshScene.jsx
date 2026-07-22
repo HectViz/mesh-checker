@@ -5,7 +5,6 @@ import * as THREE from 'three';
 export function MeshModel({ url, wireframe, onAnalysisComplete }) {
   const { scene } = useGLTF(url);
 
-  // Analyze mesh geometry, polycount, bounding box, materials
   const analysis = useMemo(() => {
     let triangles = 0;
     let vertices = 0;
@@ -17,7 +16,6 @@ export function MeshModel({ url, wireframe, onAnalysisComplete }) {
 
       scene.traverse((child) => {
         if (child.isMesh) {
-          // Geometry stats
           const geometry = child.geometry;
           if (geometry) {
             if (geometry.index) {
@@ -31,7 +29,6 @@ export function MeshModel({ url, wireframe, onAnalysisComplete }) {
             }
           }
 
-          // Material stats
           const mats = Array.isArray(child.material) ? child.material : [child.material];
           mats.forEach((mat) => {
             if (mat && !materialsSet.has(mat.name || mat.uuid)) {
@@ -50,7 +47,11 @@ export function MeshModel({ url, wireframe, onAnalysisComplete }) {
     const size = new THREE.Vector3();
     box.getSize(size);
 
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const scaleFactor = maxDim > 0 ? 3 / maxDim : 1;
+
     return {
+      scale: scaleFactor,
       triangles: Math.round(triangles),
       vertices: Math.round(vertices),
       dimensions: {
@@ -62,26 +63,38 @@ export function MeshModel({ url, wireframe, onAnalysisComplete }) {
     };
   }, [scene]);
 
-  // Notify parent component of stats
   useEffect(() => {
     if (onAnalysisComplete) {
       onAnalysisComplete(analysis);
     }
   }, [analysis, onAnalysisComplete]);
 
-  // Handle wireframe toggle
   useEffect(() => {
     if (scene) {
       scene.traverse((child) => {
         if (child.isMesh) {
-          const mats = Array.isArray(child.material) ? child.material : [child.material];
-          mats.forEach((mat) => {
-            mat.wireframe = wireframe;
-          });
+          if (!child.userData.originalMaterial) {
+            child.userData.originalMaterial = child.material;
+          }
+
+          if (wireframe) {
+            child.material = new THREE.MeshBasicMaterial({
+              color: 0x888888,
+              wireframe: true,
+            });
+          } else {
+            if (child.userData.originalMaterial) {
+              child.material = child.userData.originalMaterial;
+            }
+          }
         }
       });
     }
   }, [scene, wireframe]);
 
-  return <primitive object={scene} />;
+  return (
+    <group scale={analysis.scale}>
+      <primitive object={scene} />
+    </group>
+  );
 }
