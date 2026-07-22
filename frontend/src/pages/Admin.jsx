@@ -104,11 +104,14 @@ const Admin = () => {
             <h1 className="text-2xl font-bold flex items-center gap-2 text-error">
               <ShieldAlert /> Moderación Global
             </h1>
-            <p className="text-sm opacity-70">Panel de control</p>
+            <p className="text-sm opacity-70">Panel de control exclusivo para administradores</p>
           </div>
-          <button onClick={() => navigate('/dashboard')} className="btn btn-ghost btn-sm gap-2">
-            <ArrowLeft size={16} /> Volver al dashboard
-          </button>
+          <div className="flex gap-4 items-center">
+            <Link to="/" className="btn btn-ghost btn-sm">Inicio</Link>
+            <button onClick={() => navigate('/dashboard')} className="btn btn-outline btn-sm gap-2">
+              <ArrowLeft size={16} /> Volver al Dashboard
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}

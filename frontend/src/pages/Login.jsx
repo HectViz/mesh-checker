@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogIn } from 'lucide-react';
+import { LogIn, ArrowLeft } from 'lucide-react';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -35,7 +35,10 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-base-200">
+    <div className="min-h-screen flex items-center justify-center bg-base-200 relative">
+      <Link to="/" className="btn btn-ghost btn-sm absolute top-4 left-4 gap-2">
+        <ArrowLeft size={16} /> Inicio
+      </Link>
       <div className="card w-96 bg-base-100 shadow-xl">
         <div className="card-body">
           <h2 className="card-title justify-center gap-2 text-2xl font-bold mb-4">
@@ -82,7 +85,7 @@ const Login = () => {
           <div className="divider text-xs">o</div>
 
           <div className="text-center text-sm">
-            ¿No tienes cuenta? <Link to="/signup" className="link link-primary">Registrate aquí</Link>
+            ¿No tienes cuenta? <Link to="/signup" className="link link-primary">Regístrate aquí</Link>
           </div>
         </div>
       </div>

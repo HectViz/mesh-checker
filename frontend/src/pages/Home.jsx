@@ -17,10 +17,10 @@ const Home = () => {
         </div>
         <div className="flex-none gap-4">
           {user ? (
-            <Link to="/dashboard" className="btn btn-primary">Ir al panel</Link>
+            <Link to="/dashboard" className="btn btn-primary">Ir al Panel</Link>
           ) : (
             <>
-              <Link to="/login" className="btn btn-ghost">Iniciar sesión</Link>
+              <Link to="/login" className="btn btn-ghost">Iniciar Sesión</Link>
               <Link to="/signup" className="btn btn-primary">Regístrate</Link>
             </>
           )}
@@ -35,7 +35,7 @@ const Home = () => {
               Inspecciona tus modelos 3D en <span className="text-primary">SEGUNDOS</span>
             </h1>
             <p className="py-6 text-lg text-base-content/80">
-              La herramienta perfecta para gamedevs y artistas 3D. Sube tus archivos .glb o .gltf y obten visualización y estadísticas en tiempo records.
+              La herramienta perfecta para gamedevs y artistas 3D. Sube tus archivos .glb o .gltf y obten visualización y estadísticas en tiempo récord.
             </p>
             <div className="flex gap-4 justify-center">
               <Link to={user ? "/dashboard" : "/signup"} className="btn btn-primary btn-lg gap-2">
@@ -69,7 +69,7 @@ const Home = () => {
               <div className="card-body items-center text-center">
                 <CheckCircle2 className="text-success mb-2" size={32} />
                 <h3 className="card-title">Rápido y ligero</h3>
-                <p className="text-sm opacity-70">Sin descargas. renderizado nativo con webgl.</p>
+                <p className="text-sm opacity-70">Sin descargas. Renderizado nativo con WebGL.</p>
               </div>
             </div>
           </div>

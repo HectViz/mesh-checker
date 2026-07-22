@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, ArrowLeft } from 'lucide-react';
 
 const Signup = () => {
   const [email, setEmail] = useState('');
@@ -25,10 +25,10 @@ const Signup = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'error al registrarse');
+        throw new Error(data.error || 'Error al registrarse');
       }
 
-      setSuccess('usuario creado redirigiendo al login...');
+      setSuccess('Usuario creado. Redirigiendo al login...');
       setTimeout(() => {
         navigate('/login');
       }, 2000);
@@ -38,7 +38,10 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-base-200">
+    <div className="min-h-screen flex items-center justify-center bg-base-200 relative">
+      <Link to="/" className="btn btn-ghost btn-sm absolute top-4 left-4 gap-2">
+        <ArrowLeft size={16} /> Inicio
+      </Link>
       <div className="card w-96 bg-base-100 shadow-xl">
         <div className="card-body">
           <h2 className="card-title justify-center gap-2 text-2xl font-bold mb-4">

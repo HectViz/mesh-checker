@@ -113,7 +113,7 @@ const Dashboard = () => {
       <div className="max-w-6xl mx-auto">
 
         {/* Header */}
-        <div className="flex justify-between items-center mb-8 bg-base-100 p-4 rounded-box shadow-sm">
+        <div className="flex justify-between items-center mb-8 bg-base-100 p-4 rounded-box shadow-sm border border-base-content/10">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <FileBox className="text-primary" /> Mis Modelos
@@ -121,6 +121,7 @@ const Dashboard = () => {
             <p className="text-sm opacity-70">Hola, {user?.username}</p>
           </div>
           <div className="flex gap-4 items-center">
+            <Link to="/" className="btn btn-ghost btn-sm">Inicio</Link>
             {user?.role === 'ADMIN' && (
               <Link to="/admin" className="btn btn-outline btn-sm">Panel Admin</Link>
             )}
