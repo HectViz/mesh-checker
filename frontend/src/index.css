@@ -5,5 +5,10 @@
 @layer base {
   body {
     @apply bg-base-100 text-base-content antialiased;
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  ::selection {
+    @apply bg-primary/30 text-primary-content;
   }
 }

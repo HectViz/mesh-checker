@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShieldAlert, Users, Box, Trash2, Eye, ArrowLeft } from 'lucide-react';
+import { ShieldAlert, Users, Box, Trash2, Eye, LogOut, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Admin = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [meshes, setMeshes] = useState([]);
   const [activeTab, setActiveTab] = useState('users');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [userSearch, setUserSearch] = useState('');
+  const [meshSearch, setMeshSearch] = useState('');
 
   const fetchAdminData = async () => {
     try {
@@ -91,142 +93,214 @@ const Admin = () => {
     return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
   };
 
-  if (loading) return <div className="p-8 text-center">cargando panel de administración...</div>;
-  if (error) return <div className="p-8 text-center text-error">error: {error}</div>;
+  const filteredUsers = users.filter(u =>
+    u.username.toLowerCase().includes(userSearch.toLowerCase()) ||
+    u.email.toLowerCase().includes(userSearch.toLowerCase())
+  );
+
+  const filteredMeshes = meshes.filter(m =>
+    m.originalName.toLowerCase().includes(meshSearch.toLowerCase()) ||
+    (m.user?.username || '').toLowerCase().includes(meshSearch.toLowerCase())
+  );
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-base-200 text-base-content/50">Cargando panel de administración...</div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center bg-base-200 text-error">Error: {error}</div>;
 
   return (
-    <div className="min-h-screen bg-base-200 p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-base-200 p-6 md:p-8 flex flex-col">
+      <div className="max-w-6xl mx-auto w-full flex-1">
 
         {/* Header */}
-        <div className="flex justify-between items-center mb-8 bg-base-100 p-4 rounded-box shadow-sm border border-error/20">
+        <div className="flex justify-between items-center mb-8 bg-base-100 p-4 rounded-box border border-base-content/10 shadow-sm">
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2 text-error">
-              <ShieldAlert /> Moderación Global
+            <h1 className="text-xl font-bold flex items-center gap-2">
+              <ShieldAlert size={20} className="text-primary" /> Moderación
             </h1>
-            <p className="text-sm opacity-70">Panel de control exclusivo para administradores</p>
           </div>
-          <div className="flex gap-4 items-center">
+          <div className="flex gap-2 items-center">
             <Link to="/" className="btn btn-ghost btn-sm">Inicio</Link>
-            <button onClick={() => navigate('/dashboard')} className="btn btn-outline btn-sm gap-2">
-              <ArrowLeft size={16} /> Volver al Dashboard
+            <Link to="/dashboard" className="btn btn-ghost btn-sm">Dashboard</Link>
+            <button onClick={() => { logout(); navigate('/login'); }} className="btn btn-ghost btn-sm text-error">
+              Salir
             </button>
           </div>
         </div>
 
+        {/* Stats summary */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-base-100 border border-base-content/10 rounded-box p-4 flex items-center gap-3 shadow-sm">
+            <Users size={18} className="text-base-content/40" />
+            <div>
+              <p className="text-lg font-bold">{users.length}</p>
+              <p className="text-xs text-base-content/50">Usuarios registrados</p>
+            </div>
+          </div>
+          <div className="bg-base-100 border border-base-content/10 rounded-box p-4 flex items-center gap-3 shadow-sm">
+            <Box size={18} className="text-base-content/40" />
+            <div>
+              <p className="text-lg font-bold">{meshes.length}</p>
+              <p className="text-xs text-base-content/50">Modelos en el sistema</p>
+            </div>
+          </div>
+        </div>
+
         {/* Tabs */}
-        <div className="tabs tabs-boxed mb-6 bg-base-100">
+        <div className="flex gap-1 mb-6 border-b border-base-content/10">
           <button
-            className={`tab gap-2 ${activeTab === 'users' ? 'tab-active' : ''}`}
+            className={`px-4 py-2.5 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'users'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-base-content/50 hover:text-base-content/80'
+              }`}
             onClick={() => setActiveTab('users')}
           >
-            <Users size={16} /> Usuarios
+            <Users size={15} /> Usuarios
           </button>
           <button
-            className={`tab gap-2 ${activeTab === 'meshes' ? 'tab-active' : ''}`}
+            className={`px-4 py-2.5 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'meshes'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-base-content/50 hover:text-base-content/80'
+              }`}
             onClick={() => setActiveTab('meshes')}
           >
-            <Box size={16} /> Modelos 3D
+            <Box size={15} /> Modelos 3D
           </button>
         </div>
 
         {/* Content */}
-        <div className="card bg-base-100 shadow-xl">
-          <div className="card-body">
+        <div className="bg-base-100 border border-base-content/10 rounded-box shadow-sm">
+          <div className="p-5">
 
             {activeTab === 'users' && (
-              <div className="overflow-x-auto">
-                <table className="table w-full">
-                  <thead>
-                    <tr>
-                      <th>Usuario</th>
-                      <th>Email</th>
-                      <th>Rol</th>
-                      <th>Modelos Subidos</th>
-                      <th>Fecha Registro</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map(u => (
-                      <tr key={u.id} className={u.id === user.id ? 'bg-base-200/50' : ''}>
-                        <td className="font-bold">{u.username} {u.id === user.id && '(tú)'}</td>
-                        <td>{u.email}</td>
-                        <td>
-                          <div className={`badge ${u.role === 'ADMIN' ? 'badge-error' : 'badge-ghost'}`}>
-                            {u.role.toLowerCase()}
+              <>
+                {/* Search users */}
+                <div className="relative mb-4">
+                  <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/30" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por usuario o email..."
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    className="input input-bordered input-sm w-full pl-9"
+                  />
+                </div>
+
+                {filteredUsers.length === 0 ? (
+                  <div className="text-center py-8 text-base-content/40 text-sm">
+                    {userSearch ? `Sin resultados para "${userSearch}"` : 'No hay usuarios'}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-1">
+                    {filteredUsers.map(u => (
+                      <div
+                        key={u.id}
+                        className={`flex items-center justify-between py-3 px-3 rounded-lg group ${u.id === user.id ? 'bg-base-200/40' : 'hover:bg-base-200/40'
+                          } transition-colors`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="w-8 h-8 rounded-full bg-base-200 flex items-center justify-center text-xs font-bold text-base-content/60 shrink-0">
+                            {u.username.charAt(0).toUpperCase()}
                           </div>
-                        </td>
-                        <td>{u._count.meshes}</td>
-                        <td>{new Date(u.createdAt).toLocaleDateString()}</td>
-                        <td>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-sm">
+                                {u.username}
+                                {u.id === user.id && <span className="text-base-content/40 font-normal ml-1">(tú)</span>}
+                              </p>
+                              {u.role === 'ADMIN' && (
+                                <span className="badge badge-error badge-xs">admin</span>
+                              )}
+                            </div>
+                            <p className="text-xs text-base-content/40">{u.email}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4 shrink-0">
+                          <span className="text-xs text-base-content/40">{u._count.meshes} modelos · {new Date(u.createdAt).toLocaleDateString()}</span>
                           {u.id !== user.id && (
                             <button
                               onClick={() => handleDeleteUser(u.id)}
-                              className="btn btn-sm btn-outline btn-error"
+                              className="btn btn-ghost btn-xs btn-square text-error opacity-50 group-hover:opacity-100 transition-opacity"
+                              title="Eliminar usuario y sus modelos"
                             >
-                              Eliminar Usuario
+                              <Trash2 size={15} />
                             </button>
                           )}
-                        </td>
-                      </tr>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </div>
+                )}
+              </>
             )}
 
             {activeTab === 'meshes' && (
-              <div className="overflow-x-auto">
-                <table className="table w-full">
-                  <thead>
-                    <tr>
-                      <th>Archivo</th>
-                      <th>Subido Por</th>
-                      <th>Tamaño</th>
-                      <th>Fecha</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {meshes.length === 0 ? (
-                      <tr><td colSpan="5" className="text-center py-4">No hay modelos en el sistema</td></tr>
-                    ) : (
-                      meshes.map(mesh => (
-                        <tr key={mesh.id}>
-                          <td className="font-bold truncate max-w-[200px]" title={mesh.originalName}>
-                            {mesh.originalName}
-                          </td>
-                          <td>
-                            <div className="flex flex-col">
-                              <span>{mesh.user?.username || 'desconocido'}</span>
-                              <span className="text-xs opacity-50">{mesh.user?.email}</span>
-                            </div>
-                          </td>
-                          <td>{formatSize(mesh.fileSize)}</td>
-                          <td>{new Date(mesh.uploadDate).toLocaleDateString()}</td>
-                          <td>
-                            <div className="flex gap-2">
-                              <Link to={`/viewer?id=${mesh.id}`} className="btn btn-sm btn-ghost text-primary" title="Inspeccionar">
-                                <Eye size={18} />
-                              </Link>
-                              <button onClick={() => handleDeleteMesh(mesh.id)} className="btn btn-sm btn-ghost text-error" title="Eliminar del sistema">
-                                <Trash2 size={18} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+              <>
+                {/* Search meshes */}
+                <div className="relative mb-4">
+                  <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/30" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por nombre o usuario..."
+                    value={meshSearch}
+                    onChange={(e) => setMeshSearch(e.target.value)}
+                    className="input input-bordered input-sm w-full pl-9"
+                  />
+                </div>
+
+                {filteredMeshes.length === 0 ? (
+                  <div className="text-center py-8 text-base-content/40 text-sm">
+                    {meshSearch ? `Sin resultados para "${meshSearch}"` : 'No hay modelos en el sistema'}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-1">
+                    {filteredMeshes.map(mesh => (
+                      <div
+                        key={mesh.id}
+                        className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-base-200/40 transition-colors group"
+                      >
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <Box size={16} className="text-base-content/30 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm truncate" title={mesh.originalName}>
+                              {mesh.originalName}
+                            </p>
+                            <p className="text-xs text-base-content/40">
+                              {mesh.user?.username || 'desconocido'} · {formatSize(mesh.fileSize)} · {new Date(mesh.uploadDate).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-1 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity">
+                          <Link
+                            to={`/viewer?id=${mesh.id}`}
+                            className="btn btn-ghost btn-xs btn-square"
+                            title="Inspeccionar"
+                          >
+                            <Eye size={15} />
+                          </Link>
+                          <button
+                            onClick={() => handleDeleteMesh(mesh.id)}
+                            className="btn btn-ghost btn-xs btn-square text-error"
+                            title="Eliminar del sistema"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
 
           </div>
         </div>
 
       </div>
+
+      {/* Footer */}
+      <footer className="max-w-6xl mx-auto w-full border-t border-base-content/10 pt-6 pb-2 mt-8 flex flex-col md:flex-row justify-between items-center gap-2 text-xs text-base-content/40">
+        <span>© {new Date().getFullYear()} MeshChecker</span>
+        <span>Herramienta de inspección de modelos 3D</span>
+      </footer>
     </div>
   );
 };

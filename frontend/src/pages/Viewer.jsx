@@ -7,14 +7,13 @@ import {
   ArrowLeft,
   Layers,
   Sun,
-  Box as BoxIcon,
-  Maximize2,
   Disc,
-  Eye,
   Info,
   MousePointerClick,
   Mouse,
-  Move
+  Move,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 
 const Viewer = () => {
@@ -72,7 +71,7 @@ const Viewer = () => {
       <div className="min-h-screen flex items-center justify-center bg-base-300 text-base-content">
         <div className="flex flex-col items-center gap-4">
           <span className="loading loading-spinner loading-lg text-primary"></span>
-          <p className="font-semibold">Cargando modelo 3D...</p>
+          <p className="font-medium text-sm">Cargando modelo 3D...</p>
         </div>
       </div>
     );
@@ -81,12 +80,12 @@ const Viewer = () => {
   if (error || !meshData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-base-300 p-4">
-        <div className="card bg-base-100 shadow-xl max-w-md w-full">
-          <div className="card-body text-center">
-            <h2 className="card-title justify-center text-error">Error</h2>
-            <p className="my-4">{error || 'No se pudo cargar el archivo.'}</p>
-            <Link to="/dashboard" className="btn btn-primary gap-2">
-              <ArrowLeft size={18} /> Volver al panel
+        <div className="bg-base-100 border border-base-content/10 rounded-box max-w-md w-full shadow-sm">
+          <div className="p-6 text-center">
+            <h2 className="font-bold text-error mb-2">Error</h2>
+            <p className="text-sm text-base-content/60 mb-4">{error || 'No se pudo cargar el archivo.'}</p>
+            <Link to="/dashboard" className="btn btn-primary btn-sm gap-2">
+              <ArrowLeft size={16} /> Volver al panel
             </Link>
           </div>
         </div>
@@ -96,154 +95,160 @@ const Viewer = () => {
 
   const modelUrl = `http://localhost:5000/uploads/${meshData.filename}`;
 
-  return (
-    <div className="relative w-screen h-screen overflow-hidden bg-gradient-to-b from-base-300 to-base-100 select-none">
+  const sliderPercent = ((lightIntensity - 0.2) / (4.0 - 0.2)) * 100;
 
-      <div className="absolute top-4 left-4 right-4 z-10 flex justify-between items-center pointer-events-none">
-        <div className="flex items-center gap-3 pointer-events-auto">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="btn btn-circle btn-neutral shadow-md"
-            title="Volver al panel"
+  return (
+    <div className="w-screen h-screen overflow-hidden flex select-none">
+
+      <div className="w-72 shrink-0 bg-base-100 border-r border-base-content/10 flex flex-col h-full overflow-y-auto">
+
+        <div className="p-4 border-b border-base-content/10">
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center gap-1.5 text-sm text-base-content/60 hover:text-base-content transition-colors mb-3"
           >
-            <ArrowLeft size={20} />
-          </button>
-          <div className="bg-base-100/90 backdrop-blur-md px-4 py-2 rounded-xl shadow-md border border-base-content/10">
-            <h1 className="font-bold text-sm md:text-base text-base-content truncate max-w-[200px] md:max-w-xs">
-              {meshData.originalName}
-            </h1>
-            <p className="text-xs text-base-content/60">
-              {(meshData.fileSize / (1024 * 1024)).toFixed(2)} MB
-            </p>
+            <ArrowLeft size={14} /> Dashboard
+          </Link>
+          <h1 className="font-semibold text-base truncate" title={meshData.originalName}>
+            {meshData.originalName}
+          </h1>
+          <p className="text-sm text-base-content/50 mt-0.5">
+            {(meshData.fileSize / (1024 * 1024)).toFixed(2)} MB
+          </p>
+        </div>
+
+        <div className="p-4 border-b border-base-content/10">
+          <h2 className="text-xs font-semibold text-base-content/60 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <Info size={12} /> Geometría
+          </h2>
+
+          {analysisStats ? (
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-base-200/60 p-2.5 rounded-lg">
+                <span className="block text-base-content/50 text-xs mb-0.5">Triángulos</span>
+                <span className="font-bold text-base text-base-content">{analysisStats.triangles.toLocaleString()}</span>
+              </div>
+              <div className="bg-base-200/60 p-2.5 rounded-lg">
+                <span className="block text-base-content/50 text-xs mb-0.5">Vértices</span>
+                <span className="font-bold text-base text-base-content">{analysisStats.vertices.toLocaleString()}</span>
+              </div>
+              <div className="col-span-2 bg-base-200/60 p-2.5 rounded-lg">
+                <span className="block text-base-content/50 text-xs mb-0.5">Dimensiones (X × Y × Z)</span>
+                <span className="font-mono font-bold text-base text-base-content">
+                  {analysisStats.dimensions.x}m × {analysisStats.dimensions.y}m × {analysisStats.dimensions.z}m
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="py-3 text-center text-base-content/50 text-sm">Calculando...</div>
+          )}
+        </div>
+
+        <div className="p-4 border-b border-base-content/10">
+          <h2 className="text-xs font-semibold text-base-content/60 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <Layers size={12} /> Herramientas
+          </h2>
+
+          <div className="flex flex-col gap-3">
+            <label className="flex items-center justify-between cursor-pointer">
+              <span className="text-sm text-base-content/80 flex items-center gap-2">
+                <Layers size={14} className="text-base-content/50" /> Wireframe
+              </span>
+              <input
+                type="checkbox"
+                className="toggle toggle-primary toggle-sm"
+                checked={wireframe}
+                onChange={() => setWireframe(!wireframe)}
+              />
+            </label>
+
+            <div className="mt-1">
+              <div className="flex justify-between items-center text-sm mb-2">
+                <span className="text-base-content/80 flex items-center gap-2">
+                  <Sun size={14} className="text-base-content/50" /> Iluminación
+                </span>
+                <span className="text-xs font-mono text-base-content/60">{lightIntensity.toFixed(1)}x</span>
+              </div>
+              <div className="relative h-1.5 bg-base-300 rounded-full">
+                <div
+                  className="absolute top-0 left-0 h-full bg-primary rounded-full transition-all"
+                  style={{ width: `${sliderPercent}%` }}
+                />
+                <input
+                  type="range"
+                  min="0.2"
+                  max="4.0"
+                  step="0.1"
+                  value={lightIntensity}
+                  onChange={(e) => setLightIntensity(parseFloat(e.target.value))}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+                <div
+                  className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full border-2 border-base-100 pointer-events-none transition-all"
+                  style={{ left: `calc(${sliderPercent}% - 6px)` }}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="flex gap-2 pointer-events-auto bg-base-100/90 backdrop-blur-md p-1.5 rounded-2xl shadow-md border border-base-content/10">
-          <button
-            onClick={() => setWireframe(!wireframe)}
-            className={`btn btn-sm ${wireframe ? 'btn-primary' : 'btn-ghost'}`}
-            title="Conmutar Wireframe"
-          >
-            <Layers size={18} />
-            <span className="hidden md:inline">Wireframe</span>
-          </button>
-
+        <div className="p-4 flex-1">
           <button
             onClick={() => setShowMaterials(!showMaterials)}
-            className={`btn btn-sm ${showMaterials ? 'btn-primary' : 'btn-ghost'}`}
-            title="Lista de Materiales"
+            className="w-full text-left text-xs font-semibold text-base-content/60 uppercase tracking-wider mb-3 flex items-center gap-1.5 hover:text-base-content/80 transition-colors"
           >
-            <Disc size={18} />
-            <span className="hidden md:inline">Materiales</span>
+            {showMaterials ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+            <Disc size={12} />
+            Materiales ({analysisStats?.materials?.length || 0})
           </button>
-        </div>
-      </div>
 
-      <div className="absolute bottom-4 left-4 z-10 max-w-xs w-full bg-base-100/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-base-content/10 text-xs flex flex-col gap-3">
-        <div className="flex items-center justify-between font-bold text-sm border-b border-base-content/10 pb-2">
-          <span className="flex items-center gap-1.5"><Info size={16} className="text-primary" /> Estadísticas del Mesh</span>
-        </div>
-
-        {analysisStats ? (
-          <div className="grid grid-cols-2 gap-2 text-base-content/80">
-            <div className="bg-base-200/60 p-2 rounded-lg">
-              <span className="block text-base-content/50">Triángulos</span>
-              <span className="font-bold text-sm text-base-content">{analysisStats.triangles.toLocaleString()}</span>
-            </div>
-
-            <div className="bg-base-200/60 p-2 rounded-lg">
-              <span className="block text-base-content/50">Vértices</span>
-              <span className="font-bold text-sm text-base-content">{analysisStats.vertices.toLocaleString()}</span>
-            </div>
-
-            <div className="col-span-2 bg-base-200/60 p-2 rounded-lg">
-              <span className="block text-base-content/50 mb-1">Dimensiones (X × Y × Z)</span>
-              <span className="font-mono font-bold text-xs text-primary">
-                {analysisStats.dimensions.x}m × {analysisStats.dimensions.y}m × {analysisStats.dimensions.z}m
-              </span>
-            </div>
-          </div>
-        ) : (
-          <div className="py-2 text-center text-base-content/50">Calculando geometría...</div>
-        )}
-
-        <div className="mt-1 pt-2 border-t border-base-content/10 flex flex-col gap-1">
-          <div className="flex justify-between items-center text-base-content/70">
-            <span className="flex items-center gap-1"><Sun size={14} /> Iluminación</span>
-            <span className="font-mono">{lightIntensity.toFixed(1)}x</span>
-          </div>
-          <input
-            type="range"
-            min="0.2"
-            max="4.0"
-            step="0.1"
-            value={lightIntensity}
-            onChange={(e) => setLightIntensity(parseFloat(e.target.value))}
-            className="range range-xs range-primary"
-          />
-        </div>
-      </div>
-
-      {showMaterials && (
-        <div className="absolute bottom-4 right-4 z-10 max-w-xs w-full bg-base-100/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-base-content/10 text-xs">
-          <div className="flex justify-between items-center font-bold text-sm border-b border-base-content/10 pb-2 mb-3">
-            <span className="flex items-center gap-1.5"><Disc size={16} className="text-secondary" /> Materiales ({analysisStats?.materials?.length || 0})</span>
-            <button onClick={() => setShowMaterials(false)} className="btn btn-ghost btn-xs btn-circle">✕</button>
-          </div>
-
-          <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
-            {analysisStats?.materials?.map((mat, index) => (
-              <div key={mat.id || index} className="flex items-center justify-between bg-base-200/60 p-2 rounded-lg">
-                <div className="flex items-center gap-2 truncate">
-                  {mat.color ? (
-                    <span className="w-3.5 h-3.5 rounded-full border border-base-content/20 shrink-0" style={{ backgroundColor: mat.color }} />
-                  ) : (
-                    <span className="w-3.5 h-3.5 rounded-full bg-base-content/20 shrink-0" />
-                  )}
-                  <span className="truncate font-medium" title={mat.name}>{mat.name}</span>
+          {showMaterials && analysisStats?.materials && (
+            <div className="flex flex-col gap-1.5">
+              {analysisStats.materials.map((mat, index) => (
+                <div key={mat.id || index} className="flex items-center justify-between bg-base-200/60 p-2.5 rounded-lg">
+                  <div className="flex items-center gap-2 truncate">
+                    {mat.color ? (
+                      <span className="w-3 h-3 rounded-full border border-base-content/20 shrink-0" style={{ backgroundColor: mat.color }} />
+                    ) : (
+                      <span className="w-3 h-3 rounded-full bg-base-content/20 shrink-0" />
+                    )}
+                    <span className="truncate text-sm text-base-content/80" title={mat.name}>{mat.name}</span>
+                  </div>
+                  <span className="text-xs text-base-content/50 font-mono ml-2">{mat.type}</span>
                 </div>
-                <span className="text-[10px] opacity-50 font-mono">{mat.type}</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
 
-      <div className={`absolute bottom-4 right-4 z-10 bg-base-100/90 backdrop-blur-md p-3 rounded-2xl shadow-xl border border-base-content/10 text-xs flex flex-col gap-2 ${showMaterials ? 'mb-[220px]' : ''}`}>
-        <div className="font-bold text-sm border-b border-base-content/10 pb-1 mb-1 text-center">Controles</div>
-        <div className="flex items-center gap-2 text-base-content/70">
-          <MousePointerClick size={14} />
-          <span>Click para rotar</span>
-        </div>
-        <div className="flex items-center gap-2 text-base-content/70">
-          <Mouse size={14} />
-          <span>Scroll para zoom</span>
-        </div>
-        <div className="flex items-center gap-2 text-base-content/70">
-          <Move size={14} />
-          <span>Shift + Click para pan</span>
+        <div className="p-4 border-t border-base-content/10 text-xs text-base-content/60 flex flex-col gap-1.5">
+          <span className="flex items-center gap-2"><MousePointerClick size={12} /> Click para rotar</span>
+          <span className="flex items-center gap-2"><Mouse size={12} /> Scroll para zoom</span>
+          <span className="flex items-center gap-2"><Move size={12} /> Shift + Click para pan</span>
         </div>
       </div>
 
-      <Canvas camera={{ position: [0, 2, 5], fov: 45 }}>
-        <ambientLight intensity={lightIntensity * 0.5} />
-        <directionalLight position={[10, 10, 5]} intensity={lightIntensity} castShadow />
-        <directionalLight position={[-10, -10, -5]} intensity={lightIntensity * 0.4} />
+      <div className="flex-1 relative bg-gradient-to-b from-base-300 to-base-200">
+        <Canvas camera={{ position: [0, 2, 5], fov: 45 }}>
+          <ambientLight intensity={lightIntensity * 0.5} />
+          <directionalLight position={[10, 10, 5]} intensity={lightIntensity} castShadow />
+          <directionalLight position={[-10, -10, -5]} intensity={lightIntensity * 0.4} />
 
-        <Suspense fallback={null}>
-          <Center top>
-            <MeshModel
-              url={modelUrl}
-              wireframe={wireframe}
-              onAnalysisComplete={setAnalysisStats}
-            />
-          </Center>
-          <ContactShadows position={[0, -0.01, 0]} opacity={0.6} scale={10} blur={1.5} far={10} />
-          <Environment preset="city" />
-        </Suspense>
+          <Suspense fallback={null}>
+            <Center top>
+              <MeshModel
+                url={modelUrl}
+                wireframe={wireframe}
+                onAnalysisComplete={setAnalysisStats}
+              />
+            </Center>
+            <ContactShadows position={[0, -0.01, 0]} opacity={0.6} scale={10} blur={1.5} far={10} />
+            <Environment preset="city" />
+          </Suspense>
 
-        <OrbitControls makeDefault enableDamping dampingFactor={0.05} minDistance={0.5} maxDistance={50} />
-      </Canvas>
+          <OrbitControls makeDefault enableDamping dampingFactor={0.05} minDistance={0.5} maxDistance={50} />
+        </Canvas>
+      </div>
     </div>
   );
 };
