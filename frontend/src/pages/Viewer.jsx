@@ -1,5 +1,6 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Center, Environment, ContactShadows } from '@react-three/drei';
 import { MeshModel } from '../components/MeshScene';
@@ -20,6 +21,7 @@ const Viewer = () => {
   const [searchParams] = useSearchParams();
   const meshId = searchParams.get('id');
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [meshData, setMeshData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -40,21 +42,39 @@ const Viewer = () => {
     const fetchMeshInfo = async () => {
       try {
         const token = localStorage.getItem('token');
+        const idNum = parseInt(meshId);
+
+        // First try the user's own meshes
         const res = await fetch('http://localhost:5000/api/mesh/my-meshes', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
 
         if (res.ok) {
-          const found = data.meshes.find(m => m.id === parseInt(meshId));
+          const found = data.meshes.find(m => m.id === idNum);
           if (found) {
             setMeshData(found);
-          } else {
-            setError('Modelo no encontrado o no tienes permiso para verlo.');
+            return;
           }
-        } else {
-          setError(data.error || 'Error al obtener la información.');
         }
+
+        // If not found and user is admin, try admin endpoint
+        if (user?.role === 'ADMIN') {
+          const adminRes = await fetch('http://localhost:5000/api/admin/meshes', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const adminData = await adminRes.json();
+
+          if (adminRes.ok) {
+            const found = adminData.meshes.find(m => m.id === idNum);
+            if (found) {
+              setMeshData(found);
+              return;
+            }
+          }
+        }
+
+        setError('Modelo no encontrado o no tienes permiso para verlo.');
       } catch (err) {
         console.error(err);
         setError('Error de conexión con el servidor.');
